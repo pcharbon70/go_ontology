@@ -1,0 +1,379 @@
+@prefix : <https://w3id.org/go-code/concurrency#> .
+@prefix core: <https://w3id.org/go-code/core#> .
+@prefix struct: <https://w3id.org/go-code/structure#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# =============================================================================
+# Ontology Declaration
+# =============================================================================
+
+<https://w3id.org/go-code/concurrency> a owl:Ontology ;
+    owl:versionIRI <https://w3id.org/go-code/concurrency/1.0.0> ;
+    owl:versionInfo "1.0.0" ;
+    owl:imports <https://w3id.org/go-code/core> ,
+                <https://w3id.org/go-code/structure> ;
+    dc:title "Go Concurrency Ontology"@en ;
+    dc:description """Ontology for Go's concurrency primitives.
+    Models goroutines, channels, select statements, and related
+    synchronization patterns from the sync package."""@en ;
+    dc:creator "Pascal Music" ;
+    dc:date "2025-03-26"^^xsd:date ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
+
+# =============================================================================
+# Goroutines
+# =============================================================================
+
+:Goroutine a owl:Class ;
+    rdfs:label "Goroutine"@en ;
+    rdfs:comment """A goroutine invocation (go statement).
+    Represents a lightweight thread of execution."""@en ;
+    rdfs:subClassOf core:Statement ;
+    skos:example """go fmt.Println("hello")"""@en .
+
+:callsFunction a owl:ObjectProperty ;
+    rdfs:label "calls function"@en ;
+    rdfs:domain :Goroutine ;
+    rdfs:range struct:Function .
+
+:hasAnonymousFunction a owl:ObjectProperty ;
+    rdfs:label "has anonymous function"@en ;
+    rdfs:comment "The anonymous function launched as a goroutine."@en ;
+    rdfs:domain :Goroutine ;
+    rdfs:range core:Expression .
+
+# =============================================================================
+# Channels
+# =============================================================================
+
+:Channel a owl:Class ;
+    rdfs:label "Channel"@en ;
+    rdfs:comment "A channel type for goroutine communication."@en ;
+    rdfs:subClassOf struct:TypeDeclaration .
+
+:bufferedChannel a owl:Class ;
+    rdfs:label "Buffered Channel"@en ;
+    rdfs:comment "A channel with a buffer capacity."@en ;
+    rdfs:subClassOf :Channel .
+
+:unbufferedChannel a owl:Class ;
+    rdfs:label "Unbuffered Channel"@en ;
+    rdfs:comment "A channel with no buffer (synchronous)."@en ;
+    rdfs:subClassOf :Channel .
+
+:sendOnlyChannel a owl:Class ;
+    rdfs:label "Send-Only Channel"@en ;
+    rdfs:comment "A send-only channel (chan<-)."@en ;
+    rdfs:subClassOf :Channel .
+
+:receiveOnlyChannel a owl:Class ;
+    rdfs:label "Receive-Only Channel"@en ;
+    rdfs:comment "A receive-only channel (<-chan)."@en ;
+    rdfs:subClassOf :Channel .
+
+:bufferCapacity a owl:DatatypeProperty ;
+    rdfs:label "buffer capacity"@en ;
+    rdfs:domain :bufferedChannel ;
+    rdfs:range xsd:integer .
+
+:elementType a owl:ObjectProperty ;
+    rdfs:label "element type"@en ;
+    rdfs:domain :Channel ;
+    rdfs:range struct:TypeDeclaration .
+
+# =============================================================================
+# Channel Operations
+# =============================================================================
+
+:SendOperation a owl:Class ;
+    rdfs:label "Send Operation"@en ;
+    rdfs:comment "A channel send operation (ch <- value)."@en ;
+    rdfs:subClassOf core:Statement .
+
+:ReceiveOperation a owl:Class ;
+    rdfs:label "Receive Operation"@en ;
+    rdfs:comment "A channel receive operation (<-ch or val := <-ch)."@en ;
+    rdfs:subClassOf core:Expression .
+
+:sendsToChannel a owl:ObjectProperty ;
+    rdfs:label "sends to channel"@en ;
+    rdfs:domain :SendOperation ;
+    rdfs:range :Channel .
+
+:receivesFromChannel a owl:ObjectProperty ;
+    rdfs:label "receives from channel"@en ;
+    rdfs:domain :ReceiveOperation ;
+    rdfs:range :Channel .
+
+:hasSendValue a owl:ObjectProperty ;
+    rdfs:label "has send value"@en ;
+    rdfs:domain :SendOperation ;
+    rdfs:range core:Expression .
+
+:isReceiveWithValue a owl:DatatypeProperty ;
+    rdfs:label "is receive with value"@en ;
+    rdfs:comment "True if the receive stores the value in a variable."@en ;
+    rdfs:domain :ReceiveOperation ;
+    rdfs:range xsd:boolean .
+
+:receiveVariableName a owl:DatatypeProperty ;
+    rdfs:label "receive variable name"@en ;
+    rdfs:comment "The variable name receiving the value."@en ;
+    rdfs:domain :ReceiveOperation ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# Select Statement
+# =============================================================================
+
+:SelectStatement a owl:Class ;
+    rdfs:label "Select Statement"@en ;
+    rdfs:comment """A select statement for channel operations.
+    Waits on multiple channel operations until one can proceed."""@en ;
+    rdfs:subClassOf core:ControlFlowStatement ;
+    skos:example """select {
+case <-ch1:
+    fmt.Println("received")
+case ch2 <- val:
+    fmt.Println("sent")
+default:
+    fmt.Println("no action")
+}"""@en .
+
+:hasDefaultCase a owl:DatatypeProperty ;
+    rdfs:label "has default case"@en ;
+    rdfs:comment "True if the select has a default case."@en ;
+    rdfs:domain :SelectStatement ;
+    rdfs:range xsd:boolean .
+
+:caseCount a owl:DatatypeProperty ;
+    rdfs:label "case count"@en ;
+    rdfs:comment "Number of cases in the select statement."@en ;
+    rdfs:domain :SelectStatement ;
+    rdfs:range xsd:integer .
+
+:hasSelectCase a owl:ObjectProperty ;
+    rdfs:label "has select case"@en ;
+    rdfs:domain :SelectStatement ;
+    rdfs:range :SelectCase .
+
+:SelectCase a owl:Class ;
+    rdfs:label "Select Case"@en ;
+    rdfs:comment "A single case in a select statement."@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:SendCase a owl:Class ;
+    rdfs:label "Send Case"@en ;
+    rdfs:comment "A case waiting to send to a channel."@en ;
+    rdfs:subClassOf :SelectCase .
+
+:ReceiveCase a owl:Class ;
+    rdfs:label "Receive Case"@en ;
+    rdfs:comment "A case waiting to receive from a channel."@en ;
+    rdfs:subClassOf :SelectCase .
+
+:DefaultCase a owl:Class ;
+    rdfs:label "Default Case"@en ;
+    rdfs:comment "The default case (executed if no channel operation is ready)."@en ;
+    rdfs:subClassOf :SelectCase .
+
+:caseChannel a owl:ObjectProperty ;
+    rdfs:label "case channel"@en ;
+    rdfs:domain :SelectCase ;
+    rdfs:range :Channel .
+
+# =============================================================================
+# Defer Statement
+# =============================================================================
+
+:DeferStatement a owl:Class ;
+    rdfs:label "Defer Statement"@en ;
+    rdfs:comment """A defer statement - defers function execution
+    until the enclosing function returns. Functions are
+    executed in LIFO order."""@en ;
+    rdfs:subClassOf core:Statement ;
+    skos:example """defer file.Close()"""@en .
+
+:defersFunction a owl:ObjectProperty ;
+    rdfs:label "defers function"@en ;
+    rdfs:domain :DeferStatement ;
+    rdfs:range struct:Function .
+
+:defersMethod a owl:ObjectProperty ;
+    rdfs:label "defers method"@en ;
+    rdfs:domain :DeferStatement ;
+    rdfs:range struct:Method .
+
+:hasDeferredCall a owl:ObjectProperty ;
+    rdfs:label "has deferred call"@en ;
+    rdfs:domain :DeferStatement ;
+    rdfs:range core:Expression .
+
+# =============================================================================
+# Panic and Recover
+# =============================================================================
+
+:PanicCall a owl:Class ;
+    rdfs:label "Panic Call"@en ;
+    rdfs:comment """A built-in panic() call. Stops the normal execution
+    of the current goroutine and begins panicking."""@en ;
+    rdfs:subClassOf core:Expression ;
+    skos:example """panic("something went wrong")"""@en .
+
+:panicValue a owl:ObjectProperty ;
+    rdfs:label "panic value"@en ;
+    rdfs:domain :PanicCall ;
+    rdfs:range core:Expression .
+
+:RecoverCall a owl:Class ;
+    rdfs:label "Recover Call"@en ;
+    rdfs:comment """A built-in recover() call. Allows a program to
+    manage behavior of a panicking goroutine."""@en ;
+    rdfs:subClassOf core:Expression ;
+    skos:example """if err := recover(); err != nil { ... }"""@en .
+
+:inDeferOrRecover a owl:DatatypeProperty ;
+    rdfs:label "in defer or recover"@en ;
+    rdfs:comment "True if recover is called in a deferred function (only effective context)."@en ;
+    rdfs:domain :RecoverCall ;
+    rdfs:range xsd:boolean .
+
+# =============================================================================
+# Sync Package Patterns
+# =============================================================================
+
+:MutexUsage a owl:Class ;
+    rdfs:label "Mutex Usage"@en ;
+    rdfs:comment "Usage of sync.Mutex for mutual exclusion."@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:mutexLock a owl:ObjectProperty ;
+    rdfs:label "mutex lock"@en ;
+    rdfs:comment "A Lock() call on a mutex."@en ;
+    rdfs:range :MutexUsage .
+
+:mutexUnlock a owl:ObjectProperty ;
+    rdfs:label "mutex unlock"@en ;
+    rdfs:comment "An Unlock() call on a mutex."@en ;
+    rdfs:range :MutexUsage .
+
+:RWMutexUsage a owl:Class ;
+    rdfs:label "RWMutex Usage"@en ;
+    rdfs:comment "Usage of sync.RWMutex for readers-writer mutual exclusion."@en ;
+    rdfs:subClassOf :MutexUsage .
+
+:RLock a owl:ObjectProperty ;
+    rdfs:label "RLock"@en ;
+    rdfs:comment "An RLock() call on a RWMutex."@en ;
+    rdfs:range :RWMutexUsage .
+
+:RUnlock a owl:ObjectProperty ;
+    rdfs:label "RUnlock"@en ;
+    rdfs:comment "An RUnlock() call on a RWMutex."@en ;
+    rdfs:range :RWMutexUsage .
+
+:WaitGroupUsage a owl:Class ;
+    rdfs:label "WaitGroup Usage"@en ;
+    rdfs:comment "Usage of sync.WaitGroup for waiting for goroutines."@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:waitGroupAdd a owl:ObjectProperty ;
+    rdfs:label "WaitGroup Add"@en ;
+    rdfs:comment "An Add() call on a WaitGroup."@en ;
+    rdfs:range :WaitGroupUsage .
+
+:waitGroupDone a owl:ObjectProperty ;
+    rdfs:label "WaitGroup Done"@en ;
+    rdfs:comment "A Done() call on a WaitGroup."@en ;
+    rdfs:range :WaitGroupUsage .
+
+:waitGroupWait a owl:ObjectProperty ;
+    rdfs:label "WaitGroup Wait"@en ;
+    rdfs:comment "A Wait() call on a WaitGroup."@en ;
+    rdfs:range :WaitGroupUsage .
+
+:OnceUsage a owl:Class ;
+    rdfs:label "Once Usage"@en ;
+    rdfs:comment "Usage of sync.Once for single execution."@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:onceDo a owl:ObjectProperty ;
+    rdfs:label "Once Do"@en ;
+    rdfs:comment "A Do() call on a Once."@en ;
+    rdfs:range :OnceUsage .
+
+:CondUsage a owl:Class ;
+    rdfs:label "Cond Usage"@en ;
+    rdfs:comment "Usage of sync.Cond for condition variables."@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:condWait a owl:ObjectProperty ;
+    rdfs:label "Cond Wait"@en ;
+    rdfs:comment "A Wait() call on a Cond."@en ;
+    rdfs:range :CondUsage .
+
+:condSignal a owl:ObjectProperty ;
+    rdfs:label "Cond Signal"@en ;
+    rdfs:comment "A Signal() call on a Cond."@en ;
+    rdfs:range :CondUsage .
+
+:condBroadcast a owl:ObjectProperty ;
+    rdfs:label "Cond Broadcast"@en ;
+    rdfs:comment "A Broadcast() call on a Cond."@en ;
+    rdfs:range :CondUsage .
+
+# =============================================================================
+# Context Package Patterns
+# =============================================================================
+
+:ContextUsage a owl:Class ;
+    rdfs:label "Context Usage"@en ;
+    rdfs:comment """Usage of context.Context for cancellation and deadlines.
+    The context package is widely used for managing goroutine lifecycles."""@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:contextWithCancel a owl:ObjectProperty ;
+    rdfs:label "context WithCancel"@en ;
+    rdfs:comment "A WithCancel() call creating a cancellable context."@en ;
+    rdfs:range :ContextUsage .
+
+:contextWithDeadline a owl:ObjectProperty ;
+    rdfs:label "context WithDeadline"@en ;
+    rdfs:comment "A WithDeadline() call creating a deadline context."@en ;
+    rdfs:range :ContextUsage .
+
+:contextWithTimeout a owl:ObjectProperty ;
+    rdfs:label "context WithTimeout"@en ;
+    rdfs:comment "A WithTimeout() call creating a timeout context."@en ;
+    rdfs:range :ContextUsage .
+
+:contextDone a owl:ObjectProperty ;
+    rdfs:label "context Done"@en ;
+    rdfs:comment "Receiving from the Done() channel."@en ;
+    rdfs:range :ContextUsage .
+
+# =============================================================================
+# OWL Axioms
+# =============================================================================
+
+# Channel types are disjoint
+[] a owl:AllDisjointClasses ;
+    owl:members (
+        :bufferedChannel
+        :unbufferedChannel
+        :sendOnlyChannel
+        :receiveOnlyChannel
+    ) .
+
+# Select cases are disjoint
+[] a owl:AllDisjointClasses ;
+    owl:members (
+        :SendCase
+        :ReceiveCase
+        :DefaultCase
+    ) .

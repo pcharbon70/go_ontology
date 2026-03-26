@@ -1,0 +1,417 @@
+@prefix : <https://w3id.org/go-code/structure#> .
+@prefix core: <https://w3id.org/go-code/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# =============================================================================
+# Ontology Declaration
+# =============================================================================
+
+<https://w3id.org/go-code/structure> a owl:Ontology ;
+    owl:versionIRI <https://w3id.org/go-code/structure/1.0.0> ;
+    owl:versionInfo "1.0.0" ;
+    owl:imports <https://w3id.org/go-code/core> ;
+    dc:title "Go Code Structure Ontology"@en ;
+    dc:description """Go-specific code structure ontology. Models packages,
+    functions with receivers, types, and interface satisfaction."""@en ;
+    dc:creator "Pascal Music" ;
+    dc:date "2025-03-26"^^xsd:date ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
+
+# =============================================================================
+# Package System
+# =============================================================================
+
+:Package a owl:Class ;
+    rdfs:label "Package"@en ;
+    rdfs:comment """A Go package - a collection of source files in the same
+    directory sharing the same package declaration."""@en ;
+    rdfs:subClassOf core:CodeElement ;
+    skos:example "package fmt" .
+
+:packageName a owl:DatatypeProperty ;
+    rdfs:label "package name"@en ;
+    rdfs:comment "The simple name of the package (e.g., 'fmt', 'http')."@en ;
+    rdfs:domain :Package ;
+    rdfs:range xsd:string ;
+    a owl:FunctionalProperty .
+
+:importPath a owl:DatatypeProperty ;
+    rdfs:label "import path"@en ;
+    rdfs:comment "The full import path (e.g., 'fmt', 'net/http')."@en ;
+    rdfs:domain :Package ;
+    rdfs:range xsd:string ;
+    a owl:FunctionalProperty .
+
+:importsPackage a owl:ObjectProperty ;
+    rdfs:label "imports package"@en ;
+    rdfs:comment "Relates a package to another package it imports."@en ;
+    rdfs:domain :Package ;
+    rdfs:range :Package .
+
+:hasDoc a owl:DatatypeProperty ;
+    rdfs:label "has documentation"@en ;
+    rdfs:comment "Documentation comment for a package or declaration."@en ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# Import Declarations
+# =============================================================================
+
+:ImportDeclaration a owl:Class ;
+    rdfs:label "Import Declaration"@en ;
+    rdfs:comment "An import declaration in a file."@en ;
+    rdfs:subClassOf core:Declaration .
+
+:importPath a owl:DatatypeProperty ;
+    rdfs:label "import path"@en ;
+    rdfs:domain :ImportDeclaration ;
+    rdfs:range xsd:string .
+
+:importAlias a owl:DatatypeProperty ;
+    rdfs:label "import alias"@en ;
+    rdfs:comment "Optional alias for the imported package."@en ;
+    rdfs:domain :ImportDeclaration ;
+    rdfs:range xsd:string .
+
+:isDotImport a owl:DatatypeProperty ;
+    rdfs:label "is dot import"@en ;
+    rdfs:comment "True if this is a dot import (import . \"path\")."@en ;
+    rdfs:domain :ImportDeclaration ;
+    rdfs:range xsd:boolean .
+
+# =============================================================================
+# Functions
+# =============================================================================
+
+:Function a owl:Class ;
+    rdfs:label "Function"@en ;
+    rdfs:comment "A function declaration."@en ;
+    rdfs:subClassOf core:Declaration .
+
+:ExportedFunction a owl:Class ;
+    rdfs:label "Exported Function"@en ;
+    rdfs:comment "A function whose name starts with a capital letter."@en ;
+    rdfs:subClassOf :Function .
+
+:Method a owl:Class ;
+    rdfs:label "Method"@en ;
+    rdfs:comment "A function with a receiver."@en ;
+    rdfs:subClassOf :Function .
+
+:ValueMethod a owl:Class ;
+    rdfs:label "Value Method"@en ;
+    rdfs:comment "A method with a value (non-pointer) receiver."@en ;
+    rdfs:subClassOf :Method .
+
+:PointerMethod a owl:Class ;
+    rdfs:label "Pointer Method"@en ;
+    rdfs:comment "A method with a pointer receiver."@en ;
+    rdfs:subClassOf :Method .
+
+:functionName a owl:DatatypeProperty ;
+    rdfs:label "function name"@en ;
+    rdfs:domain :Function ;
+    rdfs:range xsd:string ;
+    a owl:FunctionalProperty .
+
+:hasReceiver a owl:ObjectProperty ;
+    rdfs:label "has receiver"@en ;
+    rdfs:domain :Method ;
+    rdfs:range :StructType .
+
+:receiverName a owl:DatatypeProperty ;
+    rdfs:label "receiver name"@en ;
+    rdfs:comment "The name of the receiver variable (empty if anonymous)."@en ;
+    rdfs:range xsd:string .
+
+:receiverType a owl:DatatypeProperty ;
+    rdfs:label "receiver type"@en ;
+    rdfs:comment "The type of the receiver."@en ;
+    rdfs:range xsd:string .
+
+:parameterCount a owl:DatatypeProperty ;
+    rdfs:label "parameter count"@en ;
+    rdfs:domain :Function ;
+    rdfs:range xsd:integer ;
+    a owl:FunctionalProperty .
+
+:resultCount a owl:DatatypeProperty ;
+    rdfs:label "result count"@en ;
+    rdfs:domain :Function ;
+    rdfs:range xsd:integer ;
+    a owl:FunctionalProperty .
+
+:isVariadic a owl:DatatypeProperty ;
+    rdfs:label "is variadic"@en ;
+    rdfs:comment "True if the last parameter is variadic (...)."@en ;
+    rdfs:domain :Function ;
+    rdfs:range xsd:boolean ;
+    a owl:FunctionalProperty .
+
+:hasParameter a owl:ObjectProperty ;
+    rdfs:label "has parameter"@en ;
+    rdfs:domain :Function ;
+    rdfs:range :Parameter .
+
+:hasResult a owl:ObjectProperty ;
+    rdfs:label "has result"@en ;
+    rdfs:domain :Function ;
+    rdfs:range :Parameter .
+
+:hasBody a owl:ObjectProperty ;
+    rdfs:label "has body"@en ;
+    rdfs:comment "The function body (if expressions are included)."@en ;
+    rdfs:domain :Function ;
+    rdfs:range core:Block .
+
+# =============================================================================
+# Parameters
+# =============================================================================
+
+:Parameter a owl:Class ;
+    rdfs:label "Parameter"@en ;
+    rdfs:comment "A function parameter or result."@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:parameterName a owl:DatatypeProperty ;
+    rdfs:label "parameter name"@en ;
+    rdfs:domain :Parameter ;
+    rdfs:range xsd:string .
+
+:parameterType a owl:DatatypeProperty ;
+    rdfs:label "parameter type"@en ;
+    rdfs:domain :Parameter ;
+    rdfs:range xsd:string .
+
+:isNamedResult a owl:DatatypeProperty ;
+    rdfs:label "is named result"@en ;
+    rdfs:comment "True if this is a named return value."@en ;
+    rdfs:domain :Parameter ;
+    rdfs:range xsd:boolean .
+
+# =============================================================================
+# Type Declarations
+# =============================================================================
+
+:TypeDeclaration a owl:Class ;
+    rdfs:label "Type Declaration"@en ;
+    rdfs:comment "A type declaration (type X ...)."@en ;
+    rdfs:subClassOf core:Declaration .
+
+:typeName a owl:DatatypeProperty ;
+    rdfs:label "type name"@en ;
+    rdfs:domain :TypeDeclaration ;
+    rdfs:range xsd:string ;
+    a owl:FunctionalProperty .
+
+# =============================================================================
+# Struct Types
+# =============================================================================
+
+:StructType a owl:Class ;
+    rdfs:label "Struct Type"@en ;
+    rdfs:comment "A struct type declaration."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+:StructField a owl:Class ;
+    rdfs:label "Struct Field"@en ;
+    rdfs:comment "A field within a struct."@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:EmbeddedField a owl:Class ;
+    rdfs:label "Embedded Field"@en ;
+    rdfs:comment "An anonymous/embedded field within a struct."@en ;
+    rdfs:subClassOf :StructField .
+
+:hasField a owl:ObjectProperty ;
+    rdfs:label "has field"@en ;
+    rdfs:domain :StructType ;
+    rdfs:range :StructField .
+
+:fieldName a owl:DatatypeProperty ;
+    rdfs:label "field name"@en ;
+    rdfs:domain :StructField ;
+    rdfs:range xsd:string .
+
+:fieldType a owl:DatatypeProperty ;
+    rdfs:label "field type"@en ;
+    rdfs:domain :StructField ;
+    rdfs:range xsd:string .
+
+:fieldTag a owl:DatatypeProperty ;
+    rdfs:label "field tag"@en ;
+    rdfs:comment "The struct tag string (e.g., \`json:\"name\"\`)."@en ;
+    rdfs:domain :StructField ;
+    rdfs:range xsd:string .
+
+:isExported a owl:DatatypeProperty ;
+    rdfs:label "is exported"@en ;
+    rdfs:comment "True if the field/type is exported (starts with capital)."@en ;
+    rdfs:range xsd:boolean .
+
+# =============================================================================
+# Interface Types
+# =============================================================================
+
+:InterfaceType a owl:Class ;
+    rdfs:label "Interface Type"@en ;
+    rdfs:comment "An interface type declaration."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+:interfaceMethod a owl:ObjectProperty ;
+    rdfs:label "interface method"@en ;
+    rdfs:domain :InterfaceType ;
+    rdfs:range :Method .
+
+:embedsInterface a owl:ObjectProperty ;
+    rdfs:label "embeds interface"@en ;
+    rdfs:comment "An interface embedded in another interface."@en ;
+    rdfs:domain :InterfaceType ;
+    rdfs:range :InterfaceType .
+
+:isEmptyInterface a owl:DatatypeProperty ;
+    rdfs:label "is empty interface"@en ;
+    rdfs:comment "True if the interface has no methods (interface{})."@en ;
+    rdfs:domain :InterfaceType ;
+    rdfs:range xsd:boolean .
+
+# =============================================================================
+# Type Aliases and Other Types
+# =============================================================================
+
+:AliasType a owl:Class ;
+    rdfs:label "Alias Type"@en ;
+    rdfs:comment "A type alias declaration."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+:underlyingType a owl:DatatypeProperty ;
+    rdfs:label "underlying type"@en ;
+    rdfs:comment "The underlying type for an alias or defined type."@en ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# Generic Types (Go 1.18+)
+# =============================================================================
+
+:TypeParameter a owl:Class ;
+    rdfs:label "Type Parameter"@en ;
+    rdfs:comment "A type parameter for generic types/functions."@en ;
+    rdfs:subClassOf core:CodeElement .
+
+:typeParameterName a owl:DatatypeProperty ;
+    rdfs:label "type parameter name"@en ;
+    rdfs:domain :TypeParameter ;
+    rdfs:range xsd:string .
+
+:hasConstraint a owl:ObjectProperty ;
+    rdfs:label "has constraint"@en ;
+    rdfs:domain :TypeParameter ;
+    rdfs:range :InterfaceType .
+
+:hasTypeParameter a owl:ObjectProperty ;
+    rdfs:label "has type parameter"@en ;
+    rdfs:domain :Function ;
+    rdfs:range :TypeParameter .
+
+# =============================================================================
+# Pointer Types
+# =============================================================================
+
+:PointerType a owl:Class ;
+    rdfs:label "Pointer Type"@en ;
+    rdfs:comment "A pointer type (*T)."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+:pointsTo a owl:ObjectProperty ;
+    rdfs:label "points to"@en ;
+    rdfs:domain :PointerType ;
+    rdfs:range :TypeDeclaration .
+
+# =============================================================================
+# Slice, Array, Map, Channel Types
+# =============================================================================
+
+:SliceType a owl:Class ;
+    rdfs:label "Slice Type"@en ;
+    rdfs:comment "A slice type ([]T)."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+:ArrayType a owl:Class ;
+    rdfs:label "Array Type"@en ;
+    rdfs:comment "An array type [N]T."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+:arrayLength a owl:DatatypeProperty ;
+    rdfs:label "array length"@en ;
+    rdfs:domain :ArrayType ;
+    rdfs:range xsd:integer .
+
+:elementType a owl:ObjectProperty ;
+    rdfs:label "element type"@en ;
+    rdfs:comment "The element type of slice, array, or map."@en ;
+    rdfs:range :TypeDeclaration .
+
+:MapType a owl:Class ;
+    rdfs:label "Map Type"@en ;
+    rdfs:comment "A map type map[K]V."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+:keyType a owl:ObjectProperty ;
+    rdfs:label "key type"@en ;
+    rdfs:domain :MapType ;
+    rdfs:range :TypeDeclaration .
+
+:valueType a owl:ObjectProperty ;
+    rdfs:label "value type"@en ;
+    rdfs:domain :MapType ;
+    rdfs:range :TypeDeclaration .
+
+:ChannelType a owl:Class ;
+    rdfs:label "Channel Type"@en ;
+    rdfs:comment "A channel type chan T."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+# =============================================================================
+# Function Types
+# =============================================================================
+
+:FunctionType a owl:Class ;
+    rdfs:label "Function Type"@en ;
+    rdfs:comment "A function type signature."@en ;
+    rdfs:subClassOf :TypeDeclaration .
+
+:hasSignature a owl:DatatypeProperty ;
+    rdfs:label "has signature"@en ;
+    rdfs:domain :FunctionType ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# OWL Axioms
+# =============================================================================
+
+# Methods are disjoint: value vs pointer methods cannot be the same
+[] a owl:AllDisjointClasses ;
+    owl:members (
+        :ValueMethod
+        :PointerMethod
+    ) .
+
+# All type declarations are disjoint with each other
+[] a owl:AllDisjointClasses ;
+    owl:members (
+        :StructType
+        :InterfaceType
+        :AliasType
+        :PointerType
+        :SliceType
+        :ArrayType
+        :MapType
+        :ChannelType
+        :FunctionType
+    ) .

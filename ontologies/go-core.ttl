@@ -1,0 +1,338 @@
+@prefix : <https://w3id.org/go-code/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/> .
+@prefix iao: <http://purl.obolibrary.org/obo/IAO_> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# =============================================================================
+# Ontology Declaration
+# =============================================================================
+
+<https://w3id.org/go-code/core> a owl:Ontology ;
+    owl:versionIRI <https://w3id.org/go-code/core/1.0.0> ;
+    owl:versionInfo "1.0.0" ;
+    dc:title "Go Code Core Ontology"@en ;
+    dc:description """Core ontology for representing Go source code structures.
+    Provides foundational classes for AST elements, expressions, and
+    language-agnostic code constructs. Aligned with BFO (Basic Formal
+    Ontology) and IAO (Information Artifact Ontology)."""@en ;
+    dc:creator "Pascal Music" ;
+    dc:date "2025-03-26"^^xsd:date ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
+
+# =============================================================================
+# Foundational Classes (aligned with BFO/IAO)
+# =============================================================================
+
+:CodeElement a owl:Class ;
+    rdfs:label "Code Element"@en ;
+    rdfs:comment """Abstract base class for all code constructs. Represents
+    information content that is generically dependent on its carriers."""@en ;
+    rdfs:subClassOf bfo:BFO_0000031 ;
+    skos:definition "A unit of source code that carries semantic meaning."@en .
+
+:SourceLocation a owl:Class ;
+    rdfs:label "Source Location"@en ;
+    rdfs:comment """Represents the location of a code element within a source file.
+    Includes file path, line numbers, and column positions."""@en ;
+    rdfs:subClassOf bfo:BFO_0000006 .
+
+:SourceFile a owl:Class ;
+    rdfs:label "Source File"@en ;
+    rdfs:comment "A physical file containing Go source code (.go)."@en ;
+    rdfs:subClassOf bfo:BFO_0000030 .
+
+# =============================================================================
+# Abstract Syntax Tree Classes
+# =============================================================================
+
+:ASTNode a owl:Class ;
+    rdfs:label "AST Node"@en ;
+    rdfs:comment """Base class for Abstract Syntax Tree nodes. Represents the
+    hierarchical structure of parsed Go code."""@en ;
+    rdfs:subClassOf :CodeElement .
+
+:Expression a owl:Class ;
+    rdfs:label "Expression"@en ;
+    rdfs:comment "An evaluable code construct that produces a value."@en ;
+    rdfs:subClassOf :ASTNode .
+
+:Statement a owl:Class ;
+    rdfs:label "Statement"@en ;
+    rdfs:comment "A code construct that performs an action."@en ;
+    rdfs:subClassOf :ASTNode .
+
+:Declaration a owl:Class ;
+    rdfs:label "Declaration"@en ;
+    rdfs:comment "Introduces a named entity into scope."@en ;
+    rdfs:subClassOf :ASTNode .
+
+# =============================================================================
+# Literal Types
+# =============================================================================
+
+:Literal a owl:Class ;
+    rdfs:label "Literal"@en ;
+    rdfs:comment "A constant value expressed directly in source code."@en ;
+    rdfs:subClassOf :Expression .
+
+:IntegerLiteral a owl:Class ;
+    rdfs:label "Integer Literal"@en ;
+    rdfs:comment "Integer value in decimal, hex, octal, or binary notation."@en ;
+    rdfs:subClassOf :Literal .
+
+:FloatLiteral a owl:Class ;
+    rdfs:label "Float Literal"@en ;
+    rdfs:comment "Floating-point number literal."@en ;
+    rdfs:subClassOf :Literal .
+
+:ImaginaryLiteral a owl:Class ;
+    rdfs:label "Imaginary Literal"@en ;
+    rdfs:comment "Imaginary number literal (e.g., 1.5i)."@en ;
+    rdfs:subClassOf :Literal .
+
+:RuneLiteral a owl:Class ;
+    rdfs:label "Rune Literal"@en ;
+    rdfs:comment "Rune literal (Unicode code point)."@en ;
+    rdfs:subClassOf :Literal .
+
+:StringLiteral a owl:Class ;
+    rdfs:label "String Literal"@en ;
+    rdfs:comment "UTF-8 encoded string literal."@en ;
+    rdfs:subClassOf :Literal .
+
+:RawStringLiteral a owl:Class ;
+    rdfs:label "Raw String Literal"@en ;
+    rdfs:comment "Raw string literal (backtick delimited)."@en ;
+    rdfs:subClassOf :StringLiteral .
+
+:BooleanLiteral a owl:Class ;
+    rdfs:label "Boolean Literal"@en ;
+    rdfs:comment "Boolean literal: true or false."@en ;
+    rdfs:subClassOf :Literal .
+
+:NilLiteral a owl:Class ;
+    rdfs:label "Nil Literal"@en ;
+    rdfs:comment "Predeclared identifier representing zero values."@en ;
+    rdfs:subClassOf :Literal .
+
+# =============================================================================
+# Composite Types
+# =============================================================================
+
+:CompositeLiteral a owl:Class ;
+    rdfs:label "Composite Literal"@en ;
+    rdfs:comment """Literal expression for creating slice, map, or struct values.
+    Example: []int{T: 1}, Point{x: 1}."""@en ;
+    rdfs:subClassOf :Expression .
+
+:SliceLiteral a owl:Class ;
+    rdfs:label "Slice Literal"@en ;
+    rdfs:comment "Slice literal expression."@en ;
+    rdfs:subClassOf :CompositeLiteral .
+
+:MapLiteral a owl:Class ;
+    rdfs:label "Map Literal"@en ;
+    rdfs:comment "Map literal expression."@en ;
+    rdfs:subClassOf :CompositeLiteral .
+
+:StructLiteral a owl:Class ;
+    rdfs:label "Struct Literal"@en ;
+    rdfs:comment "Struct literal expression."@en ;
+    rdfs:subClassOf :CompositeLiteral .
+
+# =============================================================================
+# Operator Expressions
+# =============================================================================
+
+:OperatorExpression a owl:Class ;
+    rdfs:label "Operator Expression"@en ;
+    rdfs:comment "An expression applying an operator to operands."@en ;
+    rdfs:subClassOf :Expression .
+
+:UnaryOperator a owl:Class ;
+    rdfs:label "Unary Operator"@en ;
+    rdfs:comment "An operator with a single operand."@en ;
+    rdfs:subClassOf :OperatorExpression .
+
+:BinaryOperator a owl:Class ;
+    rdfs:label "Binary Operator"@en ;
+    rdfs:comment "An operator with two operands."@en ;
+    rdfs:subClassOf :OperatorExpression .
+
+:ArithmeticOperator a owl:Class ;
+    rdfs:label "Arithmetic Operator"@en ;
+    rdfs:comment "Mathematical operators: +, -, *, /, %, &, |, ^, &^, <<, >>."@en ;
+    rdfs:subClassOf :OperatorExpression .
+
+:ComparisonOperator a owl:Class ;
+    rdfs:label "Comparison Operator"@en ;
+    rdfs:comment "Comparison operators: ==, !=, <, <=, >, >=."@en ;
+    rdfs:subClassOf :OperatorExpression .
+
+:LogicalOperator a owl:Class ;
+    rdfs:label "Logical Operator"@en ;
+    rdfs:comment "Boolean operators: &&, ||, !"@en ;
+    rdfs:subClassOf :OperatorExpression .
+
+:AddressOperator a owl:Class ;
+    rdfs:label "Address Operator"@en ;
+    rdfs:comment "The address-of operator &."@en ;
+    rdfs:subClassOf :UnaryOperator .
+
+:DereferenceOperator a owl:Class ;
+    rdfs:label "Dereference Operator"@en ;
+    rdfs:comment "The pointer dereference operator *."@en ;
+    rdfs:subClassOf :UnaryOperator .
+
+:ChannelOperator a owl:Class ;
+    rdfs:label "Channel Operator"@en ;
+    rdfs:comment "The channel communication operator <-."@en ;
+    rdfs:subClassOf :OperatorExpression .
+
+# =============================================================================
+# Control Flow Statements
+# =============================================================================
+
+:ControlFlowStatement a owl:Class ;
+    rdfs:label "Control Flow Statement"@en ;
+    rdfs:comment "A statement that controls program execution flow."@en ;
+    rdfs:subClassOf :Statement .
+
+:IfStatement a owl:Class ;
+    rdfs:label "If Statement"@en ;
+    rdfs:comment "Conditional branching with optional else."@en ;
+    rdfs:subClassOf :ControlFlowStatement .
+
+:ForStatement a owl:Class ;
+    rdfs:label "For Statement"@en ;
+    rdfs:comment "Loop construct (for, for range)."@en ;
+    rdfs:subClassOf :ControlFlowStatement .
+
+:RangeClause a owl:Class ;
+    rdfs:label "Range Clause"@en ;
+    rdfs:comment "A range clause in a for statement."@en ;
+    rdfs:subClassOf :Expression .
+
+:SwitchStatement a owl:Class ;
+    rdfs:label "Switch Statement"@en ;
+    rdfs:comment "Multi-way branch (expression switch)."@en ;
+    rdfs:subClassOf :ControlFlowStatement .
+
+:TypeSwitchStatement a owl:Class ;
+    rdfs:label "Type Switch Statement"@en ;
+    rdfs:comment "Type switch statement for type assertions."@en ;
+    rdfs:subClassOf :ControlFlowStatement .
+
+:SelectStatement a owl:Class ;
+    rdfs:label "Select Statement"@en ;
+    rdfs:comment """Multi-way branch for channel operations.
+    Defined in go-concurrency ontology but referenced here."""@en ;
+    rdfs:subClassOf :ControlFlowStatement .
+
+# =============================================================================
+# Exception Handling
+# =============================================================================
+
+:DeferStatement a owl:Class ;
+    rdfs:label "Defer Statement"@en ;
+    rdfs:comment """A defer statement - defers function execution
+    until the enclosing function returns."""@en ;
+    rdfs:subClassOf :Statement .
+
+:GoStatement a owl:Class ;
+    rdfs:label "Go Statement"@en ;
+    rdfs:comment "A goroutine invocation (go statement)."@en ;
+    rdfs:subClassOf :Statement .
+
+:ReturnStatement a owl:Class ;
+    rdfs:label "Return Statement"@en ;
+    rdfs:comment "A return statement from a function."@en ;
+    rdfs:subClassOf :Statement .
+
+:BreakStatement a owl:Class ;
+    rdfs:label "Break Statement"@en ;
+    rdfs:comment "A break statement for loop/switch exit."@en ;
+    rdfs:subClassOf :Statement .
+
+:ContinueStatement a owl:Class ;
+    rdfs:label "Continue Statement"@en ;
+    rdfs:comment "A continue statement for loop iteration."@en ;
+    rdfs:subClassOf :Statement .
+
+:GotoStatement a owl:Class ;
+    rdfs:label "Goto Statement"@en ;
+    rdfs:comment "A goto statement for unconditional jump."@en ;
+    rdfs:subClassOf :Statement .
+
+:FallthroughStatement a owl:Class ;
+    rdfs:label "Fallthrough Statement"@en ;
+    rdfs:comment "A fallthrough statement in switch case."@en ;
+    rdfs:subClassOf :Statement .
+
+# =============================================================================
+# Panic and Recover
+# =============================================================================
+
+:PanicCall a owl:Class ;
+    rdfs:label "Panic Call"@en ;
+    rdfs:comment "A built-in panic() call."@en ;
+    rdfs:subClassOf :Expression .
+
+:RecoverCall a owl:Class ;
+    rdfs:label "Recover Call"@en ;
+    rdfs:comment "A built-in recover() call."@en ;
+    rdfs:subClassOf :Expression .
+
+# =============================================================================
+# Object Properties
+# =============================================================================
+
+:hasSourceLocation a owl:ObjectProperty ;
+    rdfs:label "has source location"@en ;
+    rdfs:domain :CodeElement ;
+    rdfs:range :SourceLocation .
+
+:hasSourceFile a owl:ObjectProperty ;
+    rdfs:label "has source file"@en ;
+    rdfs:domain :SourceLocation ;
+    rdfs:range :SourceFile .
+
+:startLine a owl:DatatypeProperty ;
+    rdfs:label "start line"@en ;
+    rdfs:domain :SourceLocation ;
+    rdfs:range xsd:positiveInteger .
+
+:endLine a owl:DatatypeProperty ;
+    rdfs:label "end line"@en ;
+    rdfs:domain :SourceLocation ;
+    rdfs:range xsd:positiveInteger .
+
+:startColumn a owl:DatatypeProperty ;
+    rdfs:label "start column"@en ;
+    rdfs:domain :SourceLocation ;
+    rdfs:range xsd:positiveInteger .
+
+:endColumn a owl:DatatypeProperty ;
+    rdfs:label "end column"@en ;
+    rdfs:domain :SourceLocation ;
+    rdfs:range xsd:positiveInteger .
+
+# =============================================================================
+# OWL Axioms
+# =============================================================================
+
+# All control flow statements are disjoint
+[] a owl:AllDisjointClasses ;
+    owl:members (
+        :IfStatement
+        :ForStatement
+        :SwitchStatement
+        :TypeSwitchStatement
+        :SelectStatement
+    ) .
